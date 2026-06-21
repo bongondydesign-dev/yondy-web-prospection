@@ -1123,7 +1123,7 @@ export default function App() {
 
         {/* LEFT COLUMN: 5 Columns width - NEW PROSPECT & IA GENERATION */}
         {activeTab === 'prospection' && (
-          <section className="flex flex-col gap-6 w-full max-w-2xl mx-auto">
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full max-w-7xl mx-auto">
 
           {/* SECTION 1: FORMULAIRE NOUVEAU PROSPECT */}
           <div className="bg-white rounded-xl border border-gray-200/80 shadow-md p-5 relative overflow-hidden transition-all">
