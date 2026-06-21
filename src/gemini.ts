@@ -3,7 +3,7 @@ import { Prospect } from "./App"; // assuming Prospect interface is exported fro
 
 // Initialize GoogleGenAI with the API key from Vite environment variables
 // Make sure to add VITE_GEMINI_API_KEY in your .env file or GitHub Secrets (and expose it during build)
-const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || "";
+const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || "AIzaSyDQ1-cBENS7NOkLXhz724hJb3laowVMND8";
 
 const ai = new GoogleGenAI({
   apiKey: apiKey,
