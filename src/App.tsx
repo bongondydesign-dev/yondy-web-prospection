@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { extractDataFromText, generateMessage } from './gemini';
-import { db } from './firebase';
+import { db, auth } from './firebase';
+import Auth from './Auth';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -277,6 +279,17 @@ export const getHaitianPhoneValidation = (phoneStr: string) => {
 };
 
 export default function App() {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
   // --- STATE MANAGEMENT ---
   const [activeTab, setActiveTab] = useState<'prospection' | 'suivi' | 'dashboard'>('prospection');
   const [prospects, setProspects] = useState<Prospect[]>([]);
@@ -971,6 +984,14 @@ export default function App() {
     }
   };
 
+  if (authLoading) {
+    return <div className="min-h-screen bg-[#F7F4EE] flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-[#0B3D2E] border-t-transparent rounded-full"></div></div>;
+  }
+
+  if (!currentUser) {
+    return <Auth />;
+  }
+
   return (
     <div id="yondy-container" className="min-h-screen bg-[#F7F4EE] font-sans text-[#1A1A18] flex flex-col antialiased">
 
@@ -989,6 +1010,14 @@ export default function App() {
               <p className="hidden sm:block text-[9px] text-white/60 uppercase tracking-widest font-mono truncate">
                 Port-au-Prince · Haïti 🇭🇹
               </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => signOut(auth)}
+                className="text-[10px] sm:text-[11px] text-white/80 hover:text-white uppercase tracking-widest font-bold bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded transition-all"
+              >
+                Déconnexion
+              </button>
             </div>
           </div>
 
