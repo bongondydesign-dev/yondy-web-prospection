@@ -3,8 +3,8 @@ import { Prospect } from "./App";
 // Clé API OpenRouter - Injectée via GitHub Secrets
 const OPENROUTER_API_KEY = (import.meta as any).env.VITE_AI_API_KEY || "";
 
-// Modèle choisi : Llama 3.3 70B (Excellent pour la conversation, gratuit sur OpenRouter)
-const OPENROUTER_MODEL = "meta-llama/llama-3.3-70b-instruct:free"; 
+// Modèle choisi : Gemini 2.0 Flash Lite (Très rapide et stable, gratuit sur OpenRouter)
+const OPENROUTER_MODEL = "google/gemini-2.0-flash-lite-preview-02-05:free"; 
 
 async function callOpenRouter(systemPrompt: string, userMessage: string, jsonMode = false): Promise<string> {
   const body: any = {
