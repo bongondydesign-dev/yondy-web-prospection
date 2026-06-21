@@ -407,7 +407,7 @@ export default function App() {
     // Total revenue generated
     const totalRevenue = prospects
       .filter(p => p.statut === 'Client')
-      .reduce((sum, p) => sum + (p.montantFacture !== undefined ? p.montantFacture : p.prixCible), 0);
+      .reduce((sum, p) => sum + (p.montantFacture != null ? p.montantFacture : p.prixCible ?? 0), 0);
 
     // Valeur moyenne par client (revenu total ÷ nombre de clients)
     const averageClientValue = conversionCount > 0 ? Math.round(totalRevenue / conversionCount) : 0;
@@ -440,7 +440,7 @@ export default function App() {
         countBySourceStatusClient[src] = 0;
       }
       if (p.statut === 'Client') {
-        const val = p.montantFacture !== undefined ? p.montantFacture : p.prixCible;
+        const val = p.montantFacture != null ? p.montantFacture : p.prixCible ?? 0;
         revenueBySource[src] += val;
         countBySourceStatusClient[src]++;
       }
@@ -464,7 +464,7 @@ export default function App() {
         countBySecteurStatusClient[sec] = 0;
       }
       if (p.statut === 'Client') {
-        const val = p.montantFacture !== undefined ? p.montantFacture : p.prixCible;
+        const val = p.montantFacture != null ? p.montantFacture : p.prixCible ?? 0;
         revenueBySecteur[sec] += val;
         countBySecteurStatusClient[sec]++;
       }
@@ -715,7 +715,7 @@ export default function App() {
       await updateDoc(doc(db, "prospects", id), {
         statut: newStatut,
         dateContact: (isNowContacted && !prospect.dateContact) ? todayStr : prospect.dateContact,
-        montantFacture: newStatut === 'Client' ? (prospect.montantFacture !== undefined ? prospect.montantFacture : prospect.prixCible) : (prospect.montantFacture || null)
+        montantFacture: newStatut === 'Client' ? (prospect.montantFacture != null ? prospect.montantFacture : prospect.prixCible) : (prospect.montantFacture ?? null)
       });
     } catch (err) {
       console.error(err);
@@ -914,7 +914,7 @@ export default function App() {
     setEditedStatus(p.statut);
     setEditedPhone(p.telephone);
     setEditedPrice(p.prixCible);
-    setEditedMontantFacture(p.montantFacture !== undefined ? p.montantFacture : p.prixCible);
+    setEditedMontantFacture(p.montantFacture != null ? p.montantFacture : p.prixCible ?? 300);
     setEditModeInModal(false);
   };
 
@@ -2048,7 +2048,7 @@ Lun-Dim : 08:00 AM - 10:00 PM"
                               </span>
                               <span className="text-[10px] text-gray-500 flex flex-wrap items-center gap-1 mt-0.5">
                                 <span className={p.statut === 'Client' ? 'text-emerald-700 bg-emerald-50 border border-emerald-100 font-bold px-1.5 py-0.2 rounded font-mono' : 'text-[#E0633B] bg-orange-50/50 border border-orange-100 px-1.5 py-0.2 rounded font-mono'}>
-                                  {p.statut === 'Client' ? `Facturé : $${(p.montantFacture !== undefined ? p.montantFacture : p.prixCible).toLocaleString()}` : `Forfait : $${p.prixCible}`} USD
+                                  {p.statut === 'Client' ? `Facturé : $${(p.montantFacture != null ? p.montantFacture : p.prixCible ?? 0).toLocaleString()}` : `Forfait : $${p.prixCible ?? 0}`} USD
                                 </span>
                                 <span className="text-gray-300">|</span>
                                 <MapPin className="w-3 h-3 shrink-0" />
@@ -2171,7 +2171,7 @@ Lun-Dim : 08:00 AM - 10:00 PM"
                           <div className="text-right shrink-0">
                             {p.statut === 'Client' ? (
                               <>
-                                <span className="text-xs font-mono font-bold text-emerald-600">${(p.montantFacture !== undefined ? p.montantFacture : p.prixCible).toLocaleString()} USD</span>
+                                <span className="text-xs font-mono font-bold text-emerald-600">${(p.montantFacture != null ? p.montantFacture : p.prixCible ?? 0).toLocaleString()} USD</span>
                                 <span className="block text-[8px] text-emerald-600 bg-emerald-50 px-1 py-0.2 rounded font-black uppercase tracking-widest text-center mt-0.5">Payé</span>
                               </>
                             ) : (
@@ -2560,7 +2560,7 @@ Lun-Dim : 08:00 AM - 10:00 PM"
                         <div className="bg-white/10 px-3 py-1.5 rounded-lg border border-white/20 select-none text-right shrink-0">
                           <span className="text-[8px] uppercase font-bold text-emerald-200 block">Montant Facturé</span>
                           <span className="text-base font-extrabold text-white font-serif">
-                            ${(p.montantFacture !== undefined ? p.montantFacture : p.prixCible).toLocaleString()} USD
+                            ${(p.montantFacture != null ? p.montantFacture : p.prixCible ?? 0).toLocaleString()} USD
                           </span>
                         </div>
                       </div>
