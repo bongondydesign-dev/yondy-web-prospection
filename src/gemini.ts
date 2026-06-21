@@ -3,8 +3,8 @@ import { Prospect } from "./App";
 // Clé API OpenRouter - Injectée via GitHub Secrets
 const OPENROUTER_API_KEY = (import.meta as any).env.VITE_AI_API_KEY || "";
 
-// Modèle choisi : Gemini 2.0 Flash Lite (Très rapide et stable, gratuit sur OpenRouter)
-const OPENROUTER_MODEL = "google/gemini-2.0-flash-lite-preview-02-05:free"; 
+// Modèle choisi : GPT-OSS 120B (Modèle extrêmement performant et gratuit sur OpenRouter)
+const OPENROUTER_MODEL = "openai/gpt-oss-120b:free"; 
 
 async function callOpenRouter(systemPrompt: string, userMessage: string, jsonMode = false): Promise<string> {
   const body: any = {
