@@ -1169,10 +1169,10 @@ export default function App() {
 
         {/* LEFT COLUMN: 5 Columns width - NEW PROSPECT & IA GENERATION */}
         {activeTab === 'prospection' && (
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full max-w-7xl mx-auto">
+          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 w-full max-w-7xl mx-auto">
 
           {/* SECTION 1: FORMULAIRE NOUVEAU PROSPECT */}
-          <div className="bg-white rounded-xl border border-gray-200/80 shadow-md p-5 relative overflow-hidden transition-all">
+          <div className="lg:col-span-5 bg-white rounded-xl border border-gray-200/80 shadow-md p-5 relative overflow-hidden transition-all">
 
             {successAnimation && (
               <div className="absolute inset-0 bg-emerald-500/10 backdrop-blur-xs flex items-center justify-center z-20 animate-fade-in">
@@ -1512,7 +1512,7 @@ Lun-Dim : 08:00 AM - 10:00 PM"
           </div>
 
           {/* SECTION 2 & 3: GENERATION PAR IA ET ENVOI WHATSAPP */}
-          <div className="bg-white rounded-xl border border-gray-200/80 shadow-md p-5 flex flex-col">
+          <div className="lg:col-span-7 bg-white rounded-xl border border-gray-200/80 shadow-md p-5 flex flex-col">
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3 mb-3">
               <div className="flex flex-col text-left">
