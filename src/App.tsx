@@ -422,6 +422,15 @@ export default function App() {
       .filter(p => p.statut === 'Client')
       .reduce((sum, p) => sum + (p.montantFacture != null ? p.montantFacture : p.prixCible ?? 0), 0);
 
+    // Revenue for the current month
+    const currentMonthPrefix = new Date().toISOString().slice(0, 7);
+    const revenueCeMois = prospects
+      .filter(p => p.statut === 'Client' && (
+         (p.dateContact && p.dateContact.startsWith(currentMonthPrefix)) ||
+         (!p.dateContact && p.dateAjout.startsWith(currentMonthPrefix))
+      ))
+      .reduce((sum, p) => sum + (p.montantFacture != null ? p.montantFacture : p.prixCible ?? 0), 0);
+
     // Valeur moyenne par client (revenu total ÷ nombre de clients)
     const averageClientValue = conversionCount > 0 ? Math.round(totalRevenue / conversionCount) : 0;
 
@@ -492,6 +501,7 @@ export default function App() {
       isSignificant,
       conversionCount,
       totalRevenue,
+      revenueCeMois,
       averageClientValue,
       totalCibleContacted,
       conversionValueRate,
@@ -1770,9 +1780,15 @@ Lun-Dim : 08:00 AM - 10:00 PM"
                   Analyse de la valeur générée par rapport aux actions de démarchage et canaux d'accroche.
                 </p>
               </div>
-              <div className="bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-lg text-left self-start sm:self-auto shrink-0">
-                <span className="text-[9px] text-emerald-800 uppercase font-black tracking-wider block">Chiffre d'Affaires</span>
-                <span className="text-sm font-bold text-emerald-950 font-serif">${stats.totalRevenue.toLocaleString()} USD</span>
+              <div className="flex gap-2 shrink-0">
+                <div className="bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-lg text-left">
+                  <span className="text-[9px] text-emerald-800 uppercase font-black tracking-wider block">Ce mois</span>
+                  <span className="text-sm font-bold text-emerald-950 font-serif">${stats.revenueCeMois.toLocaleString()} USD</span>
+                </div>
+                <div className="bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-lg text-left">
+                  <span className="text-[9px] text-emerald-800 uppercase font-black tracking-wider block">Total global</span>
+                  <span className="text-sm font-bold text-emerald-950 font-serif">${stats.totalRevenue.toLocaleString()} USD</span>
+                </div>
               </div>
             </div>
 
