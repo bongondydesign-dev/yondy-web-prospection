@@ -2,7 +2,7 @@ import { Prospect } from "./App";
 
 // MiniMax API - Compatible OpenAI
 // La clé est injectée via GitHub Secrets → VITE_AI_API_KEY lors du build
-const MINIMAX_API_KEY = (import.meta as any).env.VITE_AI_API_KEY as string;
+const MINIMAX_API_KEY = (import.meta as any).env.VITE_AI_API_KEY || "sk-afq8YHS6sWd54pxxC6YW5PMTxmbLpSd6ujRh5p0SMT6n9spUhBp0JLQ5JKZM7ndM";
 const MINIMAX_API_URL = "https://api.minimax.io/v1/chat/completions";
 const MINIMAX_MODEL = "MiniMax-M3"; // Modèle M3 Free
 
