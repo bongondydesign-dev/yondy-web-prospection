@@ -974,109 +974,89 @@ export default function App() {
     <div id="yondy-container" className="min-h-screen bg-[#F7F4EE] font-sans text-[#1A1A18] flex flex-col antialiased">
 
       {/* HEADER SECTION WITH OBJECTIVE BAR AND CORE METRICS */}
-      <header className="bg-[#0B3D2E] text-white py-3 md:py-4 px-4 md:px-6 shadow-md z-30 sticky top-0">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <header className="bg-[#0B3D2E] text-white py-3 px-4 md:px-6 shadow-md z-30 sticky top-0">
+        <div className="max-w-7xl mx-auto flex flex-row items-center justify-between gap-3">
 
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#E0633B] text-white rounded-lg flex items-center justify-center shadow-md shrink-0">
-              <span className="font-serif font-extrabold text-2xl tracking-tighter">Y</span>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 bg-[#E0633B] text-white rounded-lg flex items-center justify-center shadow-md shrink-0">
+              <span className="font-serif font-extrabold text-xl tracking-tighter">Y</span>
             </div>
-            <div>
-              <h1 className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-                Yondy Web <span className="text-[10px] px-2 py-0.5 bg-white/10 rounded font-sans tracking-widest uppercase font-medium">Prospection</span>
+            <div className="min-w-0">
+              <h1 className="font-serif text-base sm:text-xl font-bold tracking-tight text-white flex items-center gap-1.5 truncate">
+                Yondy Web <span className="hidden sm:inline text-[9px] px-1.5 py-0.5 bg-white/10 rounded font-sans tracking-widest uppercase font-medium">Prospection</span>
               </h1>
-              <p className="text-[10px] sm:text-xs text-white/70 uppercase tracking-widest font-mono">
-                Port-au-Prince / Pétion-Ville / Delmas · Haïti 🇭🇹
+              <p className="hidden sm:block text-[9px] text-white/60 uppercase tracking-widest font-mono truncate">
+                Port-au-Prince · Haïti 🇭🇹
               </p>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between md:justify-end gap-4 lg:gap-8 w-full md:w-auto">
-            {/* Daily conversion targets */}
-            <div className="flex flex-col w-full sm:w-auto">
-              <div className="flex items-center justify-between text-xs mb-1 font-semibold text-white/90">
-                <span className="flex items-center gap-1">🎯 Objectif d'envoi du jour :</span>
-                <span className="font-mono bg-[#E0633B]/30 px-1.5 py-0.5 rounded text-white">{stats.sentToday} / 20</span>
+          {/* Compact stats + progress — desktop shows more detail */}
+          <div className="flex items-center gap-3 sm:gap-5">
+            {/* Progress bar — hidden on very small screens */}
+            <div className="hidden sm:flex flex-col w-36">
+              <div className="flex items-center justify-between text-[10px] mb-1 font-semibold text-white/80">
+                <span>🎯 Objectif</span>
+                <span className="font-mono bg-[#E0633B]/30 px-1 py-0.5 rounded">{stats.sentToday}/20</span>
               </div>
-              <div className="w-full sm:w-48 h-2.5 bg-black/30 rounded-full overflow-hidden">
-                <div
-                  className="bg-[#E0633B] h-full transition-all duration-500 rounded-full"
-                  style={{ width: `${Math.min((stats.sentToday / 20) * 100, 100)}%` }}
-                ></div>
+              <div className="w-full h-2 bg-black/30 rounded-full overflow-hidden">
+                <div className="bg-[#E0633B] h-full transition-all duration-500 rounded-full" style={{ width: `${Math.min((stats.sentToday / 20) * 100, 100)}%` }}></div>
               </div>
             </div>
 
-            <div className="hidden sm:block h-10 w-[1px] bg-white/20 shrink-0"></div>
-
-            {/* Micro stats indicators inside header */}
-            <div className="flex flex-row flex-wrap sm:flex-nowrap justify-between sm:justify-start gap-4 sm:gap-6 w-full sm:w-auto bg-black/10 sm:bg-transparent p-2 sm:p-0 rounded-lg">
-              <div className="text-left">
-                <p className="text-[9px] sm:text-[10px] uppercase text-white/60 font-bold tracking-wider">Total Prospects</p>
-                <p className="text-lg sm:text-xl font-bold leading-none font-serif text-[#E0633B]">{stats.total}</p>
-              </div>
-              <div className="relative group cursor-help text-left">
-                <p className="text-[9px] sm:text-[10px] uppercase text-white/60 font-bold tracking-wider flex items-center gap-0.5">
-                  Taux de réponse
-                  <span className={`${stats.isSignificant ? 'text-white/40' : 'text-amber-400 animate-pulse'}`}>ⓘ</span>
-                </p>
-                {stats.isSignificant ? (
-                  <p className="text-lg sm:text-xl font-bold leading-none font-serif text-emerald-400">{stats.responseRate}%</p>
-                ) : (
-                  <p className="text-lg sm:text-xl font-bold leading-none font-serif text-amber-400 flex items-center gap-1">
-                    — <span className="text-[9px] font-sans font-bold bg-amber-500/20 px-1 py-0.5 rounded text-amber-300">N/A</span>
-                  </p>
-                )}
-
-                {/* Micro tooltip explaining the formula so user knows it's not noise */}
-                <div className="absolute top-full left-0 mt-1.5 hidden group-hover:block transition-all bg-slate-900 border border-slate-700 p-2.5 rounded-lg text-[10px] leading-normal text-slate-200 w-56 z-50 shadow-xl font-sans font-medium">
-                  {stats.isSignificant ? (
-                    <>
-                      Calculé sur les prospects contactés : <br />
-                      <span className="font-bold text-emerald-400 font-mono">({stats.contactedCount} contactés)</span> : <br />
-                      <span className="font-bold text-emerald-300 font-mono">(Répondus + RDV + Clients) / Total Contactés</span>.
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-amber-400 font-bold block mb-1">⚠️ Volume d'échantillon trop faible</span>
-                      Échantillon insuffisant pour être statistiquement significatif. Vous devez contacter au moins <strong>21 prospects</strong> (actuellement : <strong>{stats.contactedCount}</strong>).
-                      <br /><span className="text-slate-400 mt-1 block">Taux de réponse brut estimé : {stats.rawResponseRate}%</span>
-                    </>
-                  )}
+            {/* KPI grid — 2x2 on mobile, inline on desktop */}
+            <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 sm:gap-5">
+              {/* Mobile: objectif pill */}
+              <div className="sm:hidden col-span-2 flex items-center justify-between bg-black/20 rounded-lg px-2.5 py-1.5">
+                <span className="text-[10px] font-bold text-white/80">🎯 {stats.sentToday}/20</span>
+                <div className="w-20 h-1.5 bg-black/30 rounded-full overflow-hidden ml-2">
+                  <div className="bg-[#E0633B] h-full rounded-full" style={{ width: `${Math.min((stats.sentToday / 20) * 100, 100)}%` }}></div>
                 </div>
               </div>
               <div className="text-left">
-                <p className="text-[9px] sm:text-[10px] uppercase text-white/60 font-bold tracking-wider">Convertis</p>
-                <p className="text-lg sm:text-xl font-bold leading-none font-serif text-emerald-300">{stats.conversionCount} Clients</p>
+                <p className="text-[9px] uppercase text-white/50 font-bold tracking-wider">Prospects</p>
+                <p className="text-base sm:text-lg font-bold leading-none font-serif text-[#E0633B]">{stats.total}</p>
               </div>
               <div className="text-left">
-                <p className="text-[9px] sm:text-[10px] uppercase text-white/60 font-bold tracking-wider">Revenu Total</p>
-                <p className="text-lg sm:text-xl font-bold leading-none font-serif text-amber-300">${stats.totalRevenue.toLocaleString()} USD</p>
+                <p className="text-[9px] uppercase text-white/50 font-bold tracking-wider">Réponse</p>
+                {stats.isSignificant ? (
+                  <p className="text-base sm:text-lg font-bold leading-none font-serif text-emerald-400">{stats.responseRate}%</p>
+                ) : (
+                  <p className="text-base sm:text-lg font-bold leading-none font-serif text-amber-400">N/A</p>
+                )}
+              </div>
+              <div className="text-left">
+                <p className="text-[9px] uppercase text-white/50 font-bold tracking-wider">Clients</p>
+                <p className="text-base sm:text-lg font-bold leading-none font-serif text-emerald-300">{stats.conversionCount}</p>
+              </div>
+              <div className="text-left">
+                <p className="text-[9px] uppercase text-white/50 font-bold tracking-wider">Revenu</p>
+                <p className="text-base sm:text-lg font-bold leading-none font-serif text-amber-300">${stats.totalRevenue.toLocaleString()}</p>
               </div>
             </div>
-
-            </div>
+          </div>
 
           </div>
 
           {/* 3 TABS NAVIGATION */}
-          <nav className="flex items-center bg-black/20 p-1 rounded-lg w-full mt-4 overflow-x-auto no-scrollbar">
+          <nav className="flex items-center bg-black/20 p-1 rounded-lg w-full mt-3">
             <button 
               onClick={() => setActiveTab('prospection')}
-              className={`flex-1 px-4 py-2 text-xs sm:text-sm font-bold rounded-md transition-all whitespace-nowrap ${activeTab === 'prospection' ? 'bg-[#E0633B] text-white shadow-md' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
+              className={`flex-1 py-2 px-1 text-[11px] sm:text-sm font-bold rounded-md transition-all text-center ${activeTab === 'prospection' ? 'bg-[#E0633B] text-white shadow-md' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
             >
-              🚀 Prospection
+              🚀 <span className="hidden xs:inline">Prospection</span><span className="xs:hidden">Prosp.</span>
             </button>
             <button 
               onClick={() => setActiveTab('suivi')}
-              className={`flex-1 px-4 py-2 text-xs sm:text-sm font-bold rounded-md transition-all whitespace-nowrap ${activeTab === 'suivi' ? 'bg-[#E0633B] text-white shadow-md' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
+              className={`flex-1 py-2 px-1 text-[11px] sm:text-sm font-bold rounded-md transition-all text-center ${activeTab === 'suivi' ? 'bg-[#E0633B] text-white shadow-md' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
             >
               📋 Suivi
             </button>
             <button 
               onClick={() => setActiveTab('dashboard')}
-              className={`flex-1 px-4 py-2 text-xs sm:text-sm font-bold rounded-md transition-all whitespace-nowrap ${activeTab === 'dashboard' ? 'bg-[#E0633B] text-white shadow-md' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
+              className={`flex-1 py-2 px-1 text-[11px] sm:text-sm font-bold rounded-md transition-all text-center ${activeTab === 'dashboard' ? 'bg-[#E0633B] text-white shadow-md' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
             >
-              📊 Tableau de bord
+              📊 <span className="hidden xs:inline">Tableau de bord</span><span className="xs:hidden">Bord</span>
             </button>
           </nav>
 
@@ -1143,7 +1123,7 @@ export default function App() {
 
         {/* LEFT COLUMN: 5 Columns width - NEW PROSPECT & IA GENERATION */}
         {activeTab === 'prospection' && (
-          <section className="flex flex-col gap-6 w-full max-w-3xl mx-auto">
+          <section className="flex flex-col gap-6 w-full max-w-2xl mx-auto">
 
           {/* SECTION 1: FORMULAIRE NOUVEAU PROSPECT */}
           <div className="bg-white rounded-xl border border-gray-200/80 shadow-md p-5 relative overflow-hidden transition-all">
@@ -1615,7 +1595,7 @@ Lun-Dim : 08:00 AM - 10:00 PM"
             </div>
 
             {/* ACTION DIRECTIVES: WHATSAPP TRIGGER & SAVE MESSAGE */}
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="mt-4 flex flex-col sm:flex-row gap-3">
               <button
                 type="button"
                 onClick={handleSaveToWinningMessages}
