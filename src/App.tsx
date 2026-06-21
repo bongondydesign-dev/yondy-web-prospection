@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy, where } from 'firebase/firestore';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { extractDataFromText, generateMessage } from './gemini';
 import { db, auth } from './firebase';
@@ -351,22 +351,26 @@ export default function App() {
 
   // Sync from Firebase
   useEffect(() => {
-    const q = query(collection(db, 'prospects'), orderBy('dateAjout', 'desc'));
+    if (!currentUser) return;
+    const q = query(collection(db, 'prospects'), where('userId', '==', currentUser.uid));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Prospect));
+      data.sort((a, b) => new Date(b.dateAjout).getTime() - new Date(a.dateAjout).getTime());
       setProspects(data);
     });
     return () => unsubscribe();
-  }, []);
+  }, [currentUser]);
 
   useEffect(() => {
-    const q = query(collection(db, 'winningMessages'), orderBy('dateSauvegarde', 'desc'));
+    if (!currentUser) return;
+    const q = query(collection(db, 'winningMessages'), where('userId', '==', currentUser.uid));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as WinningMessage));
+      data.sort((a, b) => new Date(b.dateSauvegarde).getTime() - new Date(a.dateSauvegarde).getTime());
       setWinningMessages(data);
     });
     return () => unsubscribe();
-  }, []);
+  }, [currentUser]);
 
   // Set the first outstanding "À contacter" prospect as active on initial load if none set
   useEffect(() => {
@@ -587,7 +591,7 @@ export default function App() {
 
   const handleCreateProspect = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nom.trim()) return;
+    if (!nom.trim() || !currentUser) return;
 
     if (!phoneValidation.isValid) {
       alert(`Format de téléphone invalide : ${phoneValidation.errorMsg}`);
@@ -598,6 +602,7 @@ export default function App() {
     const computedSource = source === 'Autre' ? (autreSource || 'Autre') : source;
 
     const newProspectData = {
+      userId: currentUser.uid,
       nom: nom.trim(),
       secteur: computedSecteur,
       telephone: telephone.trim() || "+509 ",
@@ -747,10 +752,11 @@ export default function App() {
 
   // Bookmark current text message as a successful script templates library
   const handleSaveToWinningMessages = async () => {
-    if (!activeSelectedProspect || !tempGeneratedMessage.trim()) return;
+    if (!activeSelectedProspect || !tempGeneratedMessage.trim() || !currentUser) return;
 
     try {
       await addDoc(collection(db, "winningMessages"), {
+        userId: currentUser.uid,
         titre: `Sondaj ${activeSelectedProspect.secteur} - ${activeSelectedProspect.nom.substring(0, 15)}`,
         prospectNom: activeSelectedProspect.nom,
         message: tempGeneratedMessage,
