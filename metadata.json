@@ -1,0 +1,6 @@
+{
+  "name": "Yondy Web Prospection",
+  "description": "Outil de prospection commerciale personnalisée en créole haïtien et de suivi des prospects pour Yondy Web.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
