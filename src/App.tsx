@@ -918,7 +918,7 @@ export default function App() {
     setEditModeInModal(false);
   };
 
-  const handleSaveModalEdits = () => {
+  const handleSaveModalEdits = async () => {
     if (!viewingProspectId) return;
 
     if (!editedPhoneValidation.isValid) {
@@ -926,6 +926,29 @@ export default function App() {
       return;
     }
 
+    const montantFinal = editedStatus === 'Client' ? editedMontantFacture : undefined;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const prospect = prospects.find(p => p.id === viewingProspectId);
+    const isNowContacted = ['Contacté', 'Répondu', 'Rendez-vous pris', 'Client', 'Pas intéressé'].includes(editedStatus);
+
+    // Persist to Firebase
+    try {
+      const updateData: Record<string, any> = {
+        description: editedNote,
+        statut: editedStatus,
+        telephone: editedPhone,
+        prixCible: editedPrice,
+        dateContact: (isNowContacted && prospect && !prospect.dateContact) ? todayStr : prospect?.dateContact || null,
+      };
+      if (editedStatus === 'Client') {
+        updateData.montantFacture = editedMontantFacture;
+      }
+      await updateDoc(doc(db, 'prospects', viewingProspectId), updateData);
+    } catch (err) {
+      console.error('Erreur sauvegarde Firebase:', err);
+    }
+
+    // Update local state too for instant UI update
     setProspects(prev => prev.map(p => {
       if (p.id === viewingProspectId) {
         return {
@@ -934,13 +957,12 @@ export default function App() {
           statut: editedStatus,
           telephone: editedPhone,
           prixCible: editedPrice,
-          montantFacture: editedStatus === 'Client' ? editedMontantFacture : p.montantFacture
+          ...(editedStatus === 'Client' ? { montantFacture: editedMontantFacture } : {})
         };
       }
       return p;
     }));
     setEditModeInModal(false);
-    // update current selected as well
     if (selectedProspectId === viewingProspectId) {
       const match = prospects.find(pr => pr.id === viewingProspectId);
       if (match) {
