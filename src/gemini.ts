@@ -1,23 +1,55 @@
-import { GoogleGenAI } from "@google/genai";
-import { Prospect } from "./App"; // assuming Prospect interface is exported from App.tsx
+import { Prospect } from "./App";
 
-// Initialize GoogleGenAI with the API key from Vite environment variables
-// Make sure to add VITE_GEMINI_API_KEY in your .env file or GitHub Secrets (and expose it during build)
-const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || "AIzaSyDQ1-cBENS7NOkLXhz724hJb3laowVMND8";
+// MiniMax API - Compatible OpenAI
+const MINIMAX_API_KEY = (import.meta as any).env.VITE_AI_API_KEY || "sk-afq8YHS6sWd54pxxC6YW5PMTxmbLpSd6ujRh5p0SMT6n9spUhBp0JLQ5JKZM7ndM";
+const MINIMAX_API_URL = "https://api.minimax.io/v1/chat/completions";
+const MINIMAX_MODEL = "MiniMax-M1"; // Modèle rapide et capable
 
-const ai = new GoogleGenAI({
-  apiKey: apiKey,
-});
+async function callMiniMax(systemPrompt: string, userMessage: string, jsonMode = false): Promise<string> {
+  const body: any = {
+    model: MINIMAX_MODEL,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userMessage }
+    ],
+    temperature: jsonMode ? 0.1 : 0.85,
+    max_tokens: 600,
+    stream: false,
+  };
+
+  if (jsonMode) {
+    body.response_format = { type: "json_object" };
+  }
+
+  const response = await fetch(MINIMAX_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${MINIMAX_API_KEY}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Erreur API MiniMax (${response.status}) : ${errorText}`);
+  }
+
+  const data = await response.json();
+  const text = data?.choices?.[0]?.message?.content;
+
+  if (!text) {
+    throw new Error("L'intelligence artificielle n'a renvoyé aucun résultat.");
+  }
+
+  return text.trim();
+}
 
 export async function generateMessage(
   prospect: Prospect,
   lang: string,
   professionalYetLocal: boolean
 ): Promise<string> {
-  if (!apiKey) {
-    throw new Error("La clé API Gemini (VITE_GEMINI_API_KEY) n'est pas configurée.");
-  }
-
   const {
     nom,
     secteur,
@@ -26,11 +58,9 @@ export async function generateMessage(
     noteGoogle,
     avis,
     horaires,
-    source,
-    prixCible
   } = prospect;
 
-  const isLocalMode = professionalYetLocal !== false; // defaulted to true
+  const isLocalMode = professionalYetLocal !== false;
 
   const langParam =
     lang === "french"
@@ -71,10 +101,10 @@ RÈGLES OBLIGATOIRES :
    - Si le paramètre langue est "mélangé" : rédige le message en créole comme base, avec quelques expressions ou mots français intégrés de façon hyper décontractée et naturelle comme les gens parlent vraiment (ne pas forcer, seulement si ça sonne naturel).
    Ne jamais mélanger trois langues ensemble dans un seul message.
 
-8. EMOJI : Maximum 1-2 emojis classiques et ultra-compatibles dans tout le message (comme 👋, 📱, ✨, 🇭🇹), placés naturellement, sans forcer. Ne pas mettre d'emoji dans chaque phrase. Ne mets jamais d'émojis complexes ou rares (comme des seringues ou des petits logos médicaux bizarres qui s'affichent sous forme de carrés vides).
+8. EMOJI : Maximum 1-2 emojis classiques et ultra-compatibles dans tout le message (comme 👋, 📱, ✨, 🇭🇹), placés naturellement, sans forcer. Ne pas mettre d'emoji dans chaque phrase. Ne mets jamais d'émojis complexes ou rares.
 
 9. NE JAMAIS :
-   - Inventer des informations qui ne sont pas dans la fiche de l'entreprise (ne pas dire "je vois que vous avez 200 clients" si ce n'est pas dans les données)
+   - Inventer des informations qui ne sont pas dans la fiche de l'entreprise
    - Mettre un prix ou des frais dans le premier message
    - Citer le nom d'un autre client ou d'un concurrent
    - Utiliser des mots comme "offre exclusive" ou "dernière chance" — ça sonne comme du spam
@@ -82,30 +112,22 @@ RÈGLES OBLIGATOIRES :
 FORMAT DE RÉPONSE STRICT :
 Répondre SEULEMENT avec le texte du message, rien d'autre. Ne pas mettre de titre, ne pas mettre d'explication, ne pas mettre de guillemets ou de phrase d'introduction comme "Voici le message :". Juste le texte du message brut, prêt à copier directement dans WhatsApp.
 
-DONNÉES DE L'ENTREPRISE (remplies par l'app) :
+DONNÉES DE L'ENTREPRISE :
 Nom : ${nom}
 Secteur : ${secteur || 'Non défini'}
 Quartier/Adresse : ${adresse || 'Haïti'}
 Description : ${description || 'Pas de description fournie'}
 Note Google : ${noteGoogle ? `${noteGoogle}/5` : 'Non disponible'} (${avis || 0} avis)
 Horaires : ${horaires || 'Non disponibles'}
-Langue du message : ${langParam}
-`;
+Langue du message : ${langParam}`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: "Rédige le message d'accroche pour WhatsApp en respectant scrupuleusement le format de réponse.",
-      config: {
-        systemInstruction: systemPrompt,
-        temperature: 0.85,
-      }
-    });
-
-    const text = response.text || "Désolé, la génération du message a échoué.";
-    return text.trim();
+    return await callMiniMax(
+      systemPrompt,
+      "Rédige le message d'accroche pour WhatsApp en respectant scrupuleusement le format de réponse."
+    );
   } catch (error: any) {
-    console.error("Gemini generate api error:", error);
+    console.error("MiniMax generate error:", error);
     throw new Error(error.message || "Erreur de communication avec l'intelligence artificielle.");
   }
 }
@@ -115,61 +137,35 @@ export async function extractDataFromText(rawText: string) {
     throw new Error("Le texte brut à analyser est obligatoire.");
   }
 
-  if (!apiKey) {
-    throw new Error("La clé API Gemini (VITE_GEMINI_API_KEY) n'est pas configurée.");
-  }
-
   const systemPrompt = `Tu es un assistant de prospection commerciale expert en Haïti. 
 Tu dois analyser le texte brut fourni par l'utilisateur (qui provient d'un copier-coller de Google Maps, d'une bio Instagram, d'un annuaire en ligne ou de Facebook) et en extraire proprement toutes les informations professionnelles.
 
 Consignes strictes d'extraction :
 1. "nom" : Extrais le nom de l'entreprise ou commerce. Capitalise proprement.
 2. "secteur" : Choisis impérativement l'une des valeurs exactes suivantes : "Pharmacie", "Boutique", "Restaurant", "Clinique", "École", "Salon de beauté", "Autre". Si le secteur ne correspond à aucun, utilise "Autre".
-3. "telephone" : Extrais le numéro de téléphone principal. Formate-le sous forme standard comme "+509 XXXX-XXXX" ou "+509 XX XX XX XX". Si le code pays 509 est manquant mais que c'est un numéro haïtien, ajoute-le. S'il n'y a aucun numéro, mets "+509 ".
-4. "adresse" : Extrais le quartier de localisation (exemple: Pétion-Ville, Delmas 31, Tabarre, Kenscoff, Lalue, Centre-ville, etc.). Reste précis mais court. Si non trouvé, devine le quartier s'il est mentionné dans le texte ou écris "Haïti".
-5. "description" : Rédige un résumé clair, synthétique et professionnel de l'activité du commerce en 1 ou 2 phrases en français (ce qu'ils vendent, leurs spécialités, etc.).
-6. "noteGoogle" : Extrais la note moyenne sur 5 de l'entreprise (ex: 4.4) s'il s'agit de Google Maps. Doit être un nombre décimal entre 1.0 et 5.0. Ne remplis pas si indisponible.
-7. "avis" : Extrais le nombre total d'avis ou commentaires reçus (un entier). Ne remplis pas si indisponible.
+3. "telephone" : Extrais le numéro de téléphone principal. Formate-le sous forme standard comme "+509 XXXX-XXXX". Si le code pays 509 est manquant mais que c'est un numéro haïtien, ajoute-le. S'il n'y a aucun numéro, mets "+509 ".
+4. "adresse" : Extrais le quartier de localisation (exemple: Pétion-Ville, Delmas 31, Tabarre, Lalue, etc.). Reste précis mais court. Si non trouvé, écris "Haïti".
+5. "description" : Rédige un résumé clair et professionnel de l'activité du commerce en 1 ou 2 phrases en français.
+6. "noteGoogle" : Extrais la note moyenne sur 5 (ex: 4.4). Doit être un nombre décimal entre 1.0 et 5.0. Ne remplis pas si indisponible.
+7. "avis" : Extrais le nombre total d'avis (un entier). Ne remplis pas si indisponible.
 8. "horaires" : Extrais les horaires d'ouverture si mentionnés (ex: "24/7", "Lun-Sam 8h - 18h"). Ne remplis pas si indisponible.
-9. "source" : Choisis impérativement l'une des valeurs suivantes : "Google Maps", "Instagram", "Annuaire Haiti-Digital/petion-ville.com", "Facebook", "Autre". Choisi la source la plus probable au vu des expressions utilisées dans le texte.
-10. "prixCible" : Estime le budget de site web idéal ou forfait cible visé en dollars americains (USD) pour ce prospect. Pour une école, clinique ou grand resto met entre 400 et 600. Pour une petite pharmacie ou boutique de quartier, met entre 250 et 350. Par défaut, met 300.
-`;
+9. "source" : Choisis impérativement l'une des valeurs suivantes : "Google Maps", "Instagram", "Annuaire Haiti-Digital/petion-ville.com", "Facebook", "Autre".
+10. "prixCible" : Estime le budget de site web idéal en USD. Pour une école, clinique ou grand resto : entre 400 et 600. Pour une petite pharmacie ou boutique de quartier : entre 250 et 350. Par défaut : 300.
+
+IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans aucun texte avant ou après. Respecte exactement ces champs : nom, secteur, telephone, adresse, description, noteGoogle, avis, horaires, source, prixCible.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: `Analyse ce texte brut et extrait les données structurées :\n\n${rawText}`,
-      config: {
-        systemInstruction: systemPrompt,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "OBJECT",
-          properties: {
-            nom: { type: "STRING" },
-            secteur: { type: "STRING" },
-            telephone: { type: "STRING" },
-            adresse: { type: "STRING" },
-            description: { type: "STRING" },
-            noteGoogle: { type: "NUMBER" },
-            avis: { type: "INTEGER" },
-            horaires: { type: "STRING" },
-            source: { type: "STRING" },
-            prixCible: { type: "INTEGER" }
-          },
-          required: ["nom", "secteur", "telephone", "adresse", "description", "source", "prixCible"]
-        },
-        temperature: 0.1,
-      }
-    });
+    const resultText = await callMiniMax(
+      systemPrompt,
+      `Analyse ce texte brut et extrait les données structurées :\n\n${rawText}`,
+      true // json mode
+    );
 
-    const resultText = response.text;
-    if (!resultText) {
-      throw new Error("L'intelligence artificielle n'a renvoyé aucun résultat.");
-    }
-
-    return JSON.parse(resultText);
+    // Nettoyer la réponse si elle contient des balises markdown
+    const cleaned = resultText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    return JSON.parse(cleaned);
   } catch (error: any) {
-    console.error("Gemini extract api error:", error);
+    console.error("MiniMax extract error:", error);
     throw new Error(error.message || "Erreur lors de l'analyse automatique.");
   }
 }
