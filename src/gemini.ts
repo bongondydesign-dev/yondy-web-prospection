@@ -4,7 +4,7 @@ import { Prospect } from "./App";
 // La clé est injectée via GitHub Secrets → VITE_AI_API_KEY lors du build
 const MINIMAX_API_KEY = (import.meta as any).env.VITE_AI_API_KEY as string;
 const MINIMAX_API_URL = "https://api.minimax.io/v1/chat/completions";
-const MINIMAX_MODEL = "MiniMax-M1"; // Modèle rapide et capable
+const MINIMAX_MODEL = "MiniMax-M3"; // Modèle M3 Free
 
 async function callMiniMax(systemPrompt: string, userMessage: string, jsonMode = false): Promise<string> {
   const body: any = {
