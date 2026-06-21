@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+import { extractDataFromText, generateMessage } from './gemini';
 import { db } from './firebase';
 import {
   ResponsiveContainer,
@@ -41,7 +42,7 @@ import {
   Plus
 } from 'lucide-react';
 
-interface Prospect {
+export interface Prospect {
   id: string;
   nom: string;
   secteur: string;
@@ -532,18 +533,7 @@ export default function App() {
     setIsAnalyzing(true);
     setAnalysisError(null);
     try {
-      const response = await fetch('/api/extract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rawText: rawPasteText })
-      });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || "Une erreur s'est produite lors de l'extraction par l'IA.");
-      }
-
-      const data = await response.json();
+      const data = await extractDataFromText(rawPasteText);
 
       // Pre-populate manual form inputs so user can double-check
       setNom(data.nom || '');
