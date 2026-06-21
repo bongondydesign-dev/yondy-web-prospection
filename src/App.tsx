@@ -593,9 +593,9 @@ export default function App() {
     try {
       const docRef = await addDoc(collection(db, "prospects"), newProspectData);
       setSelectedProspectId(docRef.id);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Erreur lors de l'ajout à Firebase");
+      alert(`Erreur lors de l'ajout à Firebase : ${err.message || err}`);
       return;
     }
 
@@ -636,7 +636,6 @@ export default function App() {
     }
   };
 
-  // Run proxy generation call via Express API
   const handleGenerateMessage = async () => {
     if (!activeSelectedProspect) return;
 
@@ -644,29 +643,19 @@ export default function App() {
     setGenerationError(null);
 
     try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prospect: activeSelectedProspect,
-          lang: chosenLanguage,
-          professionalYetLocal
-        })
-      });
+      const text = await generateMessage(
+        activeSelectedProspect,
+        chosenLanguage,
+        professionalYetLocal
+      );
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || "Erreur de serveur de génération.");
-      }
-
-      const data = await response.json();
-      setTempGeneratedMessage(data.message);
+      setTempGeneratedMessage(text);
 
       // Save to Firebase history
       const currentHist = activeSelectedProspect.messagesHistorique || [];
       await updateDoc(doc(db, "prospects", activeSelectedProspect.id), {
-        messageEnvoye: data.message,
-        messagesHistorique: [data.message, ...currentHist]
+        messageEnvoye: text,
+        messagesHistorique: [text, ...currentHist]
       });
     } catch (err: any) {
       console.error(err);
